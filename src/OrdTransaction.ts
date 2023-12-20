@@ -185,6 +185,9 @@ export class OrdTransaction {
 
   async createSignedPsbt() {
     const psbt = new bitcoin.Psbt({ network: this.network });
+
+    // TODO remove this line
+    psbt.setVersion(1);
     this.inputs.forEach((v, index) => {
       if (v.utxo.addressType === AddressType.P2PKH) {
         //@ts-ignore
