@@ -1,5 +1,5 @@
-import { UnspentOutput } from "./OrdTransaction";
-import { OrdUnit } from "./OrdUnit";
+import { UnspentOutput } from "./OrdTransaction.js";
+import { OrdUnit } from "./OrdUnit.js";
 
 export const UTXO_DUST = 546;
 

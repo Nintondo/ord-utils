@@ -1,6 +1,6 @@
-import { UTXO_DUST } from "./OrdUnspendOutput";
+import { UTXO_DUST } from "./OrdUnspendOutput.js";
 import * as bitcoin from "belcoinjs-lib";
-import ECPairFactory from "belpair";
+import { ECPairFactory } from "belpair";
 import * as ecc from "bells-secp256k1";
 
 const ECPair = ECPairFactory(ecc);
@@ -64,8 +64,7 @@ export function utxoToInput(utxo: UnspentOutput, publicKey: Buffer): TxInput {
       data,
       utxo,
     };
-  }
-  else {
+  } else {
     const data = {
       hash: utxo.txId,
       index: utxo.outputIndex,
@@ -260,25 +259,25 @@ Summary
 ----------------------------------------------------------------------------------------------
 Inputs
 ${this.inputs
-        .map((input, index) => {
-          const str = `
+  .map((input, index) => {
+    const str = `
 =>${index} ${input.data.witnessUtxo.value} Sats
         lock-size: ${input.data.witnessUtxo.script.length}
         via ${input.data.hash} [${input.data.index}]
 `;
-          return str;
-        })
-        .join("")}
+    return str;
+  })
+  .join("")}
 total: ${this.getTotalInput()} Sats
 ----------------------------------------------------------------------------------------------
 Outputs
 ${this.outputs
-        .map((output, index) => {
-          const str = `
+  .map((output, index) => {
+    const str = `
 =>${index} ${output.address} ${output.value} Sats`;
-          return str;
-        })
-        .join("")}
+    return str;
+  })
+  .join("")}
 
 total: ${this.getTotalOutput()} Sats
 =============================================================================================

@@ -1,6 +1,6 @@
-import { OrdTransaction, UnspentOutput } from "./OrdTransaction";
-import { UTXO_DUST } from "./OrdUnspendOutput";
-import { satoshisToAmount } from "./utils";
+import { OrdTransaction, UnspentOutput } from "./OrdTransaction.js";
+import { UTXO_DUST } from "./OrdUnspendOutput.js";
+import { satoshisToAmount } from "./utils.js";
 
 export async function createSendBEL({
   utxos,
