@@ -2,13 +2,14 @@
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "target": "es2015",
+    "target": "es2016",
     "noImplicitAny": false,
     "outDir": "./lib",
     "esModuleInterop": true,
     "sourceMap": true,
     "declaration": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./src"
   },
   "include": ["src/**/*"],
   "exclude": ["./node_modules"]
