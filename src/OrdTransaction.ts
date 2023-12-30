@@ -28,7 +28,7 @@ export interface UnspentOutput {
     offset: number;
   }[];
 }
-export declare enum AddressType {
+export enum AddressType {
   P2PKH = 0,
   P2WPKH = 1,
   P2TR = 2,
