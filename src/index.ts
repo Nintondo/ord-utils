@@ -1,3 +1,4 @@
+import { Network, Psbt } from "belcoinjs-lib";
 import { OrdTransaction, UnspentOutput } from "./OrdTransaction.js";
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
 import { satoshisToAmount } from "./utils.js";
@@ -6,7 +7,7 @@ export async function createSendBEL({
   utxos,
   toAddress,
   toAmount,
-  wallet,
+  signTransaction,
   network,
   changeAddress,
   receiverToPayFee,
@@ -18,8 +19,8 @@ export async function createSendBEL({
   utxos: UnspentOutput[];
   toAddress: string;
   toAmount: number;
-  wallet: any;
-  network: any;
+  signTransaction: (psbt: Psbt) => Promise<void>;
+  network: Network;
   changeAddress: string;
   receiverToPayFee?: boolean;
   feeRate?: number;
@@ -27,7 +28,7 @@ export async function createSendBEL({
   dump?: boolean;
   enableRBF?: boolean;
 }) {
-  const tx = new OrdTransaction(wallet, network, pubkey, feeRate);
+  const tx = new OrdTransaction(signTransaction, network, pubkey, feeRate);
   tx.setEnableRBF(enableRBF);
   tx.setChangeAddress(changeAddress);
 

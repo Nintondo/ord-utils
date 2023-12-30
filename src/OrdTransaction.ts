@@ -84,14 +84,19 @@ export class OrdTransaction {
   private inputs: TxInput[] = [];
   public outputs: TxOutput[] = [];
   private changeOutputIndex = -1;
-  private wallet: any;
+  private signTransaction: (psbt: bitcoin.Psbt) => Promise<void>;
   public changedAddress: string;
   private network: bitcoin.Network = bitcoin.networks.bitcoin;
   private feeRate: number;
   private pubkey: string;
   private enableRBF = true;
-  constructor(wallet: any, network: any, pubkey: string, feeRate?: number) {
-    this.wallet = wallet;
+  constructor(
+    signTransaction: (psbt: bitcoin.Psbt) => Promise<void>,
+    network: any,
+    pubkey: string,
+    feeRate?: number
+  ) {
+    this.signTransaction = signTransaction;
     this.network = network;
     this.pubkey = pubkey;
     this.feeRate = feeRate || 5;
@@ -202,7 +207,7 @@ export class OrdTransaction {
       psbt.addOutput(v);
     });
 
-    await this.wallet.signPsbt(psbt);
+    await this.signTransaction(psbt);
 
     return psbt;
   }
