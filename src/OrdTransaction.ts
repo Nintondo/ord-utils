@@ -184,6 +184,10 @@ export class OrdTransaction {
 
     psbt.setVersion(1);
     this.inputs.forEach((v, index) => {
+      if (v.utxo.addressType === AddressType.P2PKH) {
+        //@ts-ignore
+        psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = true;
+      }
       psbt.addInput(v.data);
       if (this.enableRBF) {
         psbt.setInputSequence(index, 0xfffffffd); // support RBF
