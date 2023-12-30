@@ -84,14 +84,14 @@ export class OrdTransaction {
   private inputs: TxInput[] = [];
   public outputs: TxOutput[] = [];
   private changeOutputIndex = -1;
-  private signTransaction: (psbt: bitcoin.Psbt) => Promise<void>;
+  private signTransaction: (psbt: bitcoin.Psbt) => void;
   public changedAddress: string;
   private network: bitcoin.Network = bitcoin.networks.bitcoin;
   private feeRate: number;
   private pubkey: string;
   private enableRBF = true;
   constructor(
-    signTransaction: (psbt: bitcoin.Psbt) => Promise<void>,
+    signTransaction: (psbt: bitcoin.Psbt) => void,
     network: any,
     pubkey: string,
     feeRate?: number
@@ -129,8 +129,8 @@ export class OrdTransaction {
     return this.getTotalInput() - this.getTotalOutput();
   }
 
-  async isEnoughFee() {
-    const psbt1 = await this.createSignedPsbt();
+  isEnoughFee() {
+    const psbt1 = this.createSignedPsbt();
     if (psbt1.getFeeRate() >= this.feeRate) {
       return true;
     } else {
@@ -138,8 +138,8 @@ export class OrdTransaction {
     }
   }
 
-  async calNetworkFee() {
-    const psbt = await this.createSignedPsbt();
+  calNetworkFee() {
+    const psbt = this.createSignedPsbt();
     let txSize = psbt.extractTransaction(true).toBuffer().length;
     psbt.data.inputs.forEach((v) => {
       if (v.finalScriptWitness) {
@@ -187,7 +187,7 @@ export class OrdTransaction {
     this.outputs.splice(-count);
   }
 
-  async createSignedPsbt() {
+  createSignedPsbt() {
     const psbt = new bitcoin.Psbt({ network: this.network });
 
     // TODO remove this line
@@ -207,16 +207,16 @@ export class OrdTransaction {
       psbt.addOutput(v);
     });
 
-    await this.signTransaction(psbt);
+    this.signTransaction(psbt);
 
     return psbt;
   }
 
-  async generate(autoAdjust: boolean) {
+  generate(autoAdjust: boolean) {
     // Try to estimate fee
     const unspent = this.getUnspent();
     this.addChangeOutput(Math.max(unspent, 0));
-    const psbt1 = await this.createSignedPsbt();
+    const psbt1 = this.createSignedPsbt();
     // this.dumpTx(psbt1);
     this.removeChangeOutput();
 
@@ -234,7 +234,7 @@ export class OrdTransaction {
         this.outputs[0].value -= fee - unspent;
       }
     }
-    const psbt2 = await this.createSignedPsbt();
+    const psbt2 = this.createSignedPsbt();
     const tx = psbt2.extractTransaction();
 
     const rawtx = tx.toHex();
@@ -247,7 +247,7 @@ export class OrdTransaction {
     };
   }
 
-  async dumpTx(psbt) {
+  dumpTx(psbt) {
     const tx = psbt.extractTransaction();
     const size = tx.toBuffer().length;
     const feePaid = psbt.getFee();

@@ -19,7 +19,7 @@ export async function createSendBEL({
   utxos: UnspentOutput[];
   toAddress: string;
   toAmount: number;
-  signTransaction: (psbt: Psbt) => Promise<void>;
+  signTransaction: (psbt: Psbt) => void;
   network: Network;
   changeAddress: string;
   receiverToPayFee?: boolean;
@@ -55,7 +55,7 @@ export async function createSendBEL({
       continue;
     }
 
-    const fee = await tx.calNetworkFee();
+    const fee = tx.calNetworkFee();
     if (tmpSum < outputAmount + fee) {
       tx.addInput(nonOrdUtxo);
       tmpSum += nonOrdUtxo.satoshis;
@@ -74,7 +74,7 @@ export async function createSendBEL({
       tx.addChangeOutput(unspent);
     }
 
-    const networkFee = await tx.calNetworkFee();
+    const networkFee = tx.calNetworkFee();
     const output = tx.outputs.find((v) => v.address === toAddress);
     if (output.value < networkFee) {
       throw new Error(
@@ -93,7 +93,7 @@ export async function createSendBEL({
     // add dummy output
     tx.addChangeOutput(1);
 
-    const networkFee = await tx.calNetworkFee();
+    const networkFee = tx.calNetworkFee();
     if (unspent < networkFee) {
       throw new Error(
         `Balance not enough. Need ${satoshisToAmount(
@@ -112,7 +112,7 @@ export async function createSendBEL({
     }
   }
 
-  const psbt = await tx.createSignedPsbt();
+  const psbt = tx.createSignedPsbt();
   if (dump) {
     tx.dumpTx(psbt);
   }
