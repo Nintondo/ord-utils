@@ -28,11 +28,13 @@ export interface UnspentOutput {
     offset: number;
   }[];
 }
-export enum AddressType {
-  P2PKH,
-  P2WPKH,
-  P2SH_P2WPKH,
-  M44_P2WPKH,
+export declare enum AddressType {
+  P2PKH = 0,
+  P2WPKH = 1,
+  P2TR = 2,
+  P2SH_P2WPKH = 3,
+  M44_P2WPKH = 4,
+  M44_P2TR = 5,
 }
 
 export const toXOnly = (pubKey: Buffer) =>
