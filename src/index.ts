@@ -1,7 +1,7 @@
-import { Network, Psbt } from "belcoinjs-lib";
 import { OrdTransaction, UnspentOutput } from "./OrdTransaction.js";
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
 import { satoshisToAmount } from "./utils.js";
+import type { CreateSendTidecoin } from "./types.js";
 
 export function createSendBEL({
   utxos,
@@ -13,21 +13,8 @@ export function createSendBEL({
   receiverToPayFee,
   feeRate,
   pubkey,
-  dump,
   enableRBF = true,
-}: {
-  utxos: UnspentOutput[];
-  toAddress: string;
-  toAmount: number;
-  signTransaction: (psbt: Psbt) => void;
-  network: Network;
-  changeAddress: string;
-  receiverToPayFee?: boolean;
-  feeRate?: number;
-  pubkey: string;
-  dump?: boolean;
-  enableRBF?: boolean;
-}) {
+}: CreateSendTidecoin) {
   const tx = new OrdTransaction(signTransaction, network, pubkey, feeRate);
   tx.setEnableRBF(enableRBF);
   tx.setChangeAddress(changeAddress);
@@ -113,9 +100,6 @@ export function createSendBEL({
   }
 
   const psbt = tx.createSignedPsbt();
-  if (dump) {
-    tx.dumpTx(psbt);
-  }
 
   return psbt;
 }

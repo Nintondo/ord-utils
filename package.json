@@ -1,6 +1,6 @@
 {
   "name": "bel-ord-utils",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "type": "module",
   "description": "Ordinals Utils",
   "keywords": [
@@ -27,8 +27,6 @@
   },
   "dependencies": {
     "belcoinjs-lib": "^0.0.3",
-    "bells-secp256k1": "^0.1.0",
-    "belpair": "^0.0.6",
     "bn.js": "^5.2.1",
     "bs58check": "^2.1.2"
   },

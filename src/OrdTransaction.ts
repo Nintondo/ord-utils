@@ -1,9 +1,7 @@
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
-import * as bitcoin from "belcoinjs-lib";
-import { ECPairFactory } from "belpair";
-import * as ecc from "bells-secp256k1";
+import { payments, networks, Psbt } from "belcoinjs-lib";
+import type { Network } from "belcoinjs-lib";
 
-const ECPair = ECPairFactory(ecc);
 interface TxInput {
   data: {
     hash: string;
@@ -17,12 +15,6 @@ interface TxOutput {
   address: string;
   value: number;
 }
-
-export const validator = (
-  pubkey: Buffer,
-  msghash: Buffer,
-  signature: Buffer
-): boolean => ECPair.fromPublicKey(pubkey).verify(msghash, signature);
 
 export interface UnspentOutput {
   txId: string;
@@ -39,10 +31,8 @@ export interface UnspentOutput {
 export enum AddressType {
   P2PKH,
   P2WPKH,
-  P2TR,
   P2SH_P2WPKH,
   M44_P2WPKH,
-  M44_P2TR,
 }
 
 export const toXOnly = (pubKey: Buffer) =>
@@ -50,7 +40,7 @@ export const toXOnly = (pubKey: Buffer) =>
 
 export function utxoToInput(utxo: UnspentOutput, publicKey: Buffer): TxInput {
   if (utxo.addressType === AddressType.P2SH_P2WPKH) {
-    const redeemData = bitcoin.payments.p2wpkh({ pubkey: publicKey });
+    const redeemData = payments.p2wpkh({ pubkey: publicKey });
     const data = {
       hash: utxo.txId,
       index: utxo.outputIndex,
@@ -84,14 +74,14 @@ export class OrdTransaction {
   private inputs: TxInput[] = [];
   public outputs: TxOutput[] = [];
   private changeOutputIndex = -1;
-  private signTransaction: (psbt: bitcoin.Psbt) => void;
+  private signTransaction: (psbt: Psbt) => void;
   public changedAddress: string;
-  private network: bitcoin.Network = bitcoin.networks.bitcoin;
+  private network: Network = networks.bitcoin;
   private feeRate: number;
   private pubkey: string;
   private enableRBF = true;
   constructor(
-    signTransaction: (psbt: bitcoin.Psbt) => void,
+    signTransaction: (psbt: Psbt) => void,
     network: any,
     pubkey: string,
     feeRate?: number
@@ -188,7 +178,7 @@ export class OrdTransaction {
   }
 
   createSignedPsbt() {
-    const psbt = new bitcoin.Psbt({ network: this.network });
+    const psbt = new Psbt({ network: this.network });
 
     psbt.setVersion(1);
     this.inputs.forEach((v, index) => {
@@ -240,47 +230,5 @@ export class OrdTransaction {
       toSatoshis: toAmount,
       estimateFee: fee,
     };
-  }
-
-  dumpTx(psbt) {
-    const tx = psbt.extractTransaction();
-    const size = tx.toBuffer().length;
-    const feePaid = psbt.getFee();
-    const feeRate = psbt.getFeeRate();
-
-    console.log(`
-=============================================================================================
-Summary
-  txid:     ${tx.getId()}
-  Size:     ${tx.byteLength()}
-  Fee Paid: ${psbt.getFee()}
-  Fee Rate: ${feeRate} sat/vB
-  Detail:   ${psbt.txInputs.length} Inputs, ${psbt.txOutputs.length} Outputs
-----------------------------------------------------------------------------------------------
-Inputs
-${this.inputs
-  .map((input, index) => {
-    const str = `
-=>${index} ${input.data.witnessUtxo.value} Sats
-        lock-size: ${input.data.witnessUtxo.script.length}
-        via ${input.data.hash} [${input.data.index}]
-`;
-    return str;
-  })
-  .join("")}
-total: ${this.getTotalInput()} Sats
-----------------------------------------------------------------------------------------------
-Outputs
-${this.outputs
-  .map((output, index) => {
-    const str = `
-=>${index} ${output.address} ${output.value} Sats`;
-    return str;
-  })
-  .join("")}
-
-total: ${this.getTotalOutput()} Sats
-=============================================================================================
-    `);
   }
 }
