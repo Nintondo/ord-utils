@@ -13,9 +13,16 @@ export async function createSendBEL({
   receiverToPayFee,
   feeRate,
   pubkey,
+  calculateFee,
   enableRBF = true,
 }: CreateSendTidecoin) {
-  const tx = new OrdTransaction(signTransaction, network, pubkey, feeRate);
+  const tx = new OrdTransaction({
+    signTransaction,
+    network,
+    pubkey,
+    feeRate,
+    calculateFee,
+  });
   tx.setEnableRBF(enableRBF);
   tx.setChangeAddress(changeAddress);
 

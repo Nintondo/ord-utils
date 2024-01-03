@@ -1,6 +1,7 @@
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
 import { payments, networks, Psbt } from "belcoinjs-lib";
 import type { Network } from "belcoinjs-lib";
+import { CreateSendTidecoin } from "types.js";
 
 interface TxInput {
   data: {
@@ -77,19 +78,25 @@ export class OrdTransaction {
   private inputs: TxInput[] = [];
   public outputs: TxOutput[] = [];
   private changeOutputIndex = -1;
-  private signTransaction: (psbt: Psbt) => void;
+  private signTransaction: (psbt: Psbt) => Promise<void>;
+  private calculateFee?: (psbt: Psbt, feeRate: number) => Promise<number>;
   public changedAddress: string;
   private network: Network = networks.bitcoin;
   private feeRate: number;
   private pubkey: string;
   private enableRBF = true;
-  constructor(
-    signTransaction: (psbt: Psbt) => void,
-    network: any,
-    pubkey: string,
-    feeRate?: number
-  ) {
+  constructor({
+    network,
+    pubkey,
+    signTransaction,
+    calculateFee,
+    feeRate,
+  }: Pick<
+    CreateSendTidecoin,
+    "signTransaction" | "network" | "pubkey" | "feeRate" | "calculateFee"
+  >) {
     this.signTransaction = signTransaction;
+    this.calculateFee = calculateFee;
     this.network = network;
     this.pubkey = pubkey;
     this.feeRate = feeRate || 5;
@@ -132,6 +139,10 @@ export class OrdTransaction {
   }
 
   async calNetworkFee() {
+    if (this.calculateFee) {
+      const psbt = await this.createSignedPsbt(true);
+      return await this.calculateFee(psbt, this.feeRate);
+    }
     const psbt = await this.createSignedPsbt();
     let txSize = psbt.extractTransaction(true).toBuffer().length;
     psbt.data.inputs.forEach((v) => {
@@ -180,7 +191,7 @@ export class OrdTransaction {
     this.outputs.splice(-count);
   }
 
-  async createSignedPsbt() {
+  async createSignedPsbt(skipSign = false) {
     const psbt = new Psbt({ network: this.network });
 
     psbt.setVersion(1);
@@ -199,7 +210,7 @@ export class OrdTransaction {
       psbt.addOutput(v);
     });
 
-    await this.signTransaction(psbt);
+    if (!skipSign) await this.signTransaction(psbt);
 
     return psbt;
   }
