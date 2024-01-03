@@ -3,7 +3,7 @@ import { UTXO_DUST } from "./OrdUnspendOutput.js";
 import { satoshisToAmount } from "./utils.js";
 import type { CreateSendTidecoin } from "./types.js";
 
-export function createSendBEL({
+export async function createSendBEL({
   utxos,
   toAddress,
   toAmount,
@@ -42,7 +42,7 @@ export function createSendBEL({
       continue;
     }
 
-    const fee = tx.calNetworkFee();
+    const fee = await tx.calNetworkFee();
     if (tmpSum < outputAmount + fee) {
       tx.addInput(nonOrdUtxo);
       tmpSum += nonOrdUtxo.satoshis;
@@ -61,7 +61,7 @@ export function createSendBEL({
       tx.addChangeOutput(unspent);
     }
 
-    const networkFee = tx.calNetworkFee();
+    const networkFee = await tx.calNetworkFee();
     const output = tx.outputs.find((v) => v.address === toAddress);
     if (output.value < networkFee) {
       throw new Error(
@@ -80,7 +80,7 @@ export function createSendBEL({
     // add dummy output
     tx.addChangeOutput(1);
 
-    const networkFee = tx.calNetworkFee();
+    const networkFee = await tx.calNetworkFee();
     if (unspent < networkFee) {
       throw new Error(
         `Balance not enough. Need ${satoshisToAmount(
@@ -99,7 +99,7 @@ export function createSendBEL({
     }
   }
 
-  const psbt = tx.createSignedPsbt();
+  const psbt = await tx.createSignedPsbt();
 
   return psbt;
 }

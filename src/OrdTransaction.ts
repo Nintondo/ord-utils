@@ -7,6 +7,7 @@ interface TxInput {
     hash: string;
     index: number;
     witnessUtxo: { value: number; script: Buffer };
+    redeemScript?: Buffer;
   };
   utxo: UnspentOutput;
 }
@@ -43,7 +44,7 @@ export const toXOnly = (pubKey: Buffer) =>
 export function utxoToInput(utxo: UnspentOutput, publicKey: Buffer): TxInput {
   if (utxo.addressType === AddressType.P2SH_P2WPKH) {
     const redeemData = payments.p2wpkh({ pubkey: publicKey });
-    const data = {
+    const data: TxInput["data"] = {
       hash: utxo.txId,
       index: utxo.outputIndex,
       witnessUtxo: {
@@ -57,7 +58,7 @@ export function utxoToInput(utxo: UnspentOutput, publicKey: Buffer): TxInput {
       utxo,
     };
   } else {
-    const data = {
+    const data: TxInput["data"] = {
       hash: utxo.txId,
       index: utxo.outputIndex,
       witnessUtxo: {
@@ -121,8 +122,8 @@ export class OrdTransaction {
     return this.getTotalInput() - this.getTotalOutput();
   }
 
-  isEnoughFee() {
-    const psbt1 = this.createSignedPsbt();
+  async isEnoughFee() {
+    const psbt1 = await this.createSignedPsbt();
     if (psbt1.getFeeRate() >= this.feeRate) {
       return true;
     } else {
@@ -130,8 +131,8 @@ export class OrdTransaction {
     }
   }
 
-  calNetworkFee() {
-    const psbt = this.createSignedPsbt();
+  async calNetworkFee() {
+    const psbt = await this.createSignedPsbt();
     let txSize = psbt.extractTransaction(true).toBuffer().length;
     psbt.data.inputs.forEach((v) => {
       if (v.finalScriptWitness) {
@@ -179,7 +180,7 @@ export class OrdTransaction {
     this.outputs.splice(-count);
   }
 
-  createSignedPsbt() {
+  async createSignedPsbt() {
     const psbt = new Psbt({ network: this.network });
 
     psbt.setVersion(1);
@@ -198,16 +199,16 @@ export class OrdTransaction {
       psbt.addOutput(v);
     });
 
-    this.signTransaction(psbt);
+    await this.signTransaction(psbt);
 
     return psbt;
   }
 
-  generate(autoAdjust: boolean) {
+  async generate(autoAdjust: boolean) {
     // Try to estimate fee
     const unspent = this.getUnspent();
     this.addChangeOutput(Math.max(unspent, 0));
-    const psbt1 = this.createSignedPsbt();
+    const psbt1 = await this.createSignedPsbt();
     // this.dumpTx(psbt1);
     this.removeChangeOutput();
 
@@ -225,7 +226,7 @@ export class OrdTransaction {
         this.outputs[0].value -= fee - unspent;
       }
     }
-    const psbt2 = this.createSignedPsbt();
+    const psbt2 = await this.createSignedPsbt();
     const tx = psbt2.extractTransaction();
 
     const rawtx = tx.toHex();

@@ -5,7 +5,7 @@ export interface CreateSendTidecoin {
   utxos: UnspentOutput[];
   toAddress: string;
   toAmount: number;
-  signTransaction: (psbt: Psbt) => void;
+  signTransaction: (psbt: Psbt) => Promise<void>;
   network: Network;
   changeAddress: string;
   receiverToPayFee?: boolean;
