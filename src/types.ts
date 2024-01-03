@@ -12,5 +12,5 @@ export interface CreateSendTidecoin {
   feeRate?: number;
   pubkey: string;
   enableRBF?: boolean;
-  calculateFee?: (tx: Psbt, feeRate: number) => Promise<number>;
+  calculateFee?: (tx: string, feeRate: number) => Promise<number>;
 }

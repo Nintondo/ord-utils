@@ -1,7 +1,7 @@
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
 import { payments, networks, Psbt } from "belcoinjs-lib";
 import type { Network } from "belcoinjs-lib";
-import { CreateSendTidecoin } from "types.js";
+import type { CreateSendTidecoin } from "./types.js";
 
 interface TxInput {
   data: {
@@ -78,8 +78,8 @@ export class OrdTransaction {
   private inputs: TxInput[] = [];
   public outputs: TxOutput[] = [];
   private changeOutputIndex = -1;
-  private signTransaction: (psbt: Psbt) => Promise<void>;
-  private calculateFee?: (psbt: Psbt, feeRate: number) => Promise<number>;
+  private signTransaction: CreateSendTidecoin["signTransaction"];
+  private calculateFee?: CreateSendTidecoin["calculateFee"];
   public changedAddress: string;
   private network: Network = networks.bitcoin;
   private feeRate: number;
@@ -141,7 +141,8 @@ export class OrdTransaction {
   async calNetworkFee() {
     if (this.calculateFee) {
       const psbt = await this.createSignedPsbt(true);
-      return await this.calculateFee(psbt, this.feeRate);
+      (psbt as any).__CACHE.__UNSAFE_SIGN_NONSEGWIT = false;
+      return await this.calculateFee(psbt.toHex(), this.feeRate);
     }
     const psbt = await this.createSignedPsbt();
     let txSize = psbt.extractTransaction(true).toBuffer().length;
