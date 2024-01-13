@@ -1,16 +1,23 @@
 import type { UnspentOutput } from "./OrdTransaction.js";
 import type { Network, Psbt } from "belcoinjs-lib";
 
-export interface CreateSendTidecoin {
+interface CreateSendBase {
   utxos: UnspentOutput[];
   toAddress: string;
-  toAmount: number;
-  signTransaction: (psbt: Psbt) => Promise<void>;
-  network: Network;
-  changeAddress: string;
-  receiverToPayFee?: boolean;
-  feeRate?: number;
-  pubkey: string;
   enableRBF?: boolean;
+  signTransaction: (psbt: Psbt) => Promise<void>;
+  changeAddress: string;
+  feeRate?: number;
+  network: Network;
+  pubkey: string;
   calculateFee?: (tx: string, feeRate: number) => Promise<number>;
+}
+
+export interface CreateSendTidecoin extends CreateSendBase {
+  toAmount: number;
+  receiverToPayFee?: boolean;
+}
+
+export interface CreateSendOrd extends CreateSendBase {
+  outputValue: number;
 }
