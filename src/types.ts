@@ -1,4 +1,4 @@
-import type { UnspentOutput } from "./OrdTransaction.js";
+import type { UnspentOutput, UnspentOutputBase } from "./OrdTransaction.js";
 import type { Network, Psbt } from "belcoinjs-lib";
 
 interface CreateSendBase {
@@ -13,11 +13,20 @@ interface CreateSendBase {
   calculateFee?: (tx: string, feeRate: number) => Promise<number>;
 }
 
-export interface CreateSendTidecoin extends CreateSendBase {
+export interface CreateSendBel extends CreateSendBase {
   toAmount: number;
   receiverToPayFee?: boolean;
 }
 
 export interface CreateSendOrd extends CreateSendBase {
   outputValue: number;
+}
+
+export interface CreateMultiSendOrd {
+  utxos: UnspentOutputBase[];
+  toAddress: string;
+  signPsbtHex: (psbtHex: string) => Promise<string>;
+  changeAddress: string;
+  feeRate?: number;
+  network?: Network;
 }

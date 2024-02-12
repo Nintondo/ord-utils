@@ -1,7 +1,7 @@
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
 import { payments, networks, Psbt } from "belcoinjs-lib";
 import type { Network } from "belcoinjs-lib";
-import type { CreateSendTidecoin } from "./types.js";
+import type { CreateSendBel } from "./types.js";
 
 interface TxInput {
   data: {
@@ -18,17 +18,21 @@ interface TxOutput {
   value: number;
 }
 
-export interface UnspentOutput {
+export interface UnspentOutputBase {
   txId: string;
   outputIndex: number;
   satoshis: number;
-  scriptPk: string;
-  addressType: AddressType;
-  address: string;
   ords: {
     id: string;
     offset: number;
   }[];
+  rawHex?: string;
+}
+
+export interface UnspentOutput extends UnspentOutputBase {
+  scriptPk: string;
+  addressType: AddressType;
+  address: string;
 }
 export enum AddressType {
   P2PKH = 0,
@@ -78,8 +82,8 @@ export class OrdTransaction {
   private inputs: TxInput[] = [];
   public outputs: TxOutput[] = [];
   private changeOutputIndex = -1;
-  private signTransaction: CreateSendTidecoin["signTransaction"];
-  private calculateFee?: CreateSendTidecoin["calculateFee"];
+  private signTransaction: CreateSendBel["signTransaction"];
+  private calculateFee?: CreateSendBel["calculateFee"];
   public changedAddress: string;
   private network: Network = networks.bitcoin;
   private feeRate: number;
@@ -92,7 +96,7 @@ export class OrdTransaction {
     calculateFee,
     feeRate,
   }: Pick<
-    CreateSendTidecoin,
+    CreateSendBel,
     "signTransaction" | "network" | "pubkey" | "feeRate" | "calculateFee"
   >) {
     this.signTransaction = signTransaction;

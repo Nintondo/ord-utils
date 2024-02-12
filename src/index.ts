@@ -1,7 +1,16 @@
-import { OrdTransaction, UnspentOutput } from "./OrdTransaction.js";
+import {
+  OrdTransaction,
+  UnspentOutput,
+  UnspentOutputBase,
+} from "./OrdTransaction.js";
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
-import { satoshisToAmount } from "./utils.js";
-import type { CreateSendOrd, CreateSendTidecoin } from "./types.js";
+import { calculateFee, satoshisToAmount } from "./utils.js";
+import type {
+  CreateSendOrd,
+  CreateSendBel,
+  CreateMultiSendOrd,
+} from "./types.js";
+import { networks, Psbt } from "belcoinjs-lib";
 
 export async function createSendBEL({
   utxos,
@@ -15,7 +24,7 @@ export async function createSendBEL({
   pubkey,
   calculateFee,
   enableRBF = true,
-}: CreateSendTidecoin) {
+}: CreateSendBel) {
   const tx = new OrdTransaction({
     signTransaction,
     network,
@@ -211,4 +220,65 @@ export async function createSendOrd({
 
   const psbt = await tx.createSignedPsbt();
   return psbt;
+}
+
+export async function createMultisendOrd({
+  utxos,
+  toAddress,
+  signPsbtHex,
+  network = networks.bitcoin,
+  changeAddress,
+  feeRate,
+}: CreateMultiSendOrd) {
+  let tx = new Psbt({ network });
+  tx.setVersion(1);
+
+  const nonOrdUtxos: UnspentOutputBase[] = [];
+  const ordUtxos: UnspentOutputBase[] = [];
+  utxos.forEach((v) => {
+    if (v.ords.length > 0) {
+      ordUtxos.push(v);
+    } else {
+      nonOrdUtxos.push(v);
+    }
+  });
+
+  for (let i = 0; i < ordUtxos.length; i++) {
+    const ordUtxo = ordUtxos[i];
+    if (ordUtxo.ords.length > 1) {
+      throw new Error("Multiple inscriptions! Please split them first.");
+    }
+    tx.addInput({
+      hash: ordUtxo.txId,
+      index: ordUtxo.outputIndex,
+      nonWitnessUtxo: Buffer.from(ordUtxo.rawHex!, "hex"),
+    });
+    tx.addOutput({ address: toAddress, value: ordUtxo.satoshis });
+  }
+
+  let amount = 0;
+  for (let i = 0; i < nonOrdUtxos.length; i++) {
+    const nonOrdUtxo = nonOrdUtxos[i];
+    amount += nonOrdUtxo.satoshis;
+    tx.addInput({
+      hash: nonOrdUtxo.txId,
+      index: nonOrdUtxo.outputIndex,
+      nonWitnessUtxo: Buffer.from(nonOrdUtxo.rawHex!, "hex"),
+    });
+  }
+
+  const fee = await calculateFee(
+    tx.clone(),
+    feeRate,
+    changeAddress,
+    signPsbtHex
+  );
+  const change = amount - fee;
+  if (change < 0) {
+    throw new Error("Balance not enough to pay network fee.");
+  }
+  tx.addOutput({ address: changeAddress, value: change });
+  tx = Psbt.fromHex(await signPsbtHex(tx.toHex()));
+  tx.finalizeAllInputs();
+  return tx.extractTransaction(true).toHex();
 }
