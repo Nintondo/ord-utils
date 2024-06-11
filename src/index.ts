@@ -226,7 +226,7 @@ export async function createMultisendOrd({
   utxos,
   toAddress,
   signPsbtHex,
-  network = networks.bitcoin,
+  network = networks.bellcoin,
   changeAddress,
   feeRate,
 }: CreateMultiSendOrd) {
