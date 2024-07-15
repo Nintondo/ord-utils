@@ -1,7 +1,7 @@
 import { UnspentOutput } from "./OrdTransaction.js";
 import { OrdUnit } from "./OrdUnit.js";
 
-export const UTXO_DUST = 546;
+export const UTXO_DUST = 1000;
 
 export class OrdUnspendOutput {
   ordUnits: OrdUnit[];

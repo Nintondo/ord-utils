@@ -1,6 +1,6 @@
 {
   "name": "bel-ord-utils",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "type": "module",
   "description": "Ordinals Utils",
   "keywords": [
@@ -26,13 +26,13 @@
     "build": "rm -rf lib && tsc"
   },
   "dependencies": {
-    "belcoinjs-lib": "0.0.9",
+    "belcoinjs-lib": "0.1.1",
     "bn.js": "5.2.1",
     "bs58check": "2.1.2"
   },
   "devDependencies": {
-    "@types/bn.js": "5.1.5",
-    "@types/node": "20.10.5",
+    "@types/bn.js": "^5.1.5",
+    "@types/node": "^20.10.5",
     "typescript": "latest"
   },
   "publishConfig": {
