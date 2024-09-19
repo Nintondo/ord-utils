@@ -1,7 +1,7 @@
 import { address, Network, payments, Psbt, Transaction } from "belcoinjs-lib";
 import BN from "bn.js";
-import { AddressType, UnspentOutputBase } from "OrdTransaction.js";
-import { AddInputProps } from "types.js";
+import { AddressType, UnspentOutputBase } from "./OrdTransaction.js";
+import { AddInputProps } from "./types.js";
 
 export function satoshisToAmount(val: number) {
   const num = new BN(val);
