@@ -4,7 +4,7 @@ import {
   UnspentOutputBase,
 } from "./OrdTransaction.js";
 import { UTXO_DUST } from "./OrdUnspendOutput.js";
-import { calculateFee, satoshisToAmount } from "./utils.js";
+import { addPsbtInput, calculateFee, satoshisToAmount } from "./utils.js";
 import type {
   CreateSendOrd,
   CreateSendBel,
@@ -228,6 +228,7 @@ export async function createMultisendOrd({
   signPsbtHex,
   network = networks.bellcoin,
   changeAddress,
+  publicKey,
   feeRate,
 }: CreateMultiSendOrd) {
   let tx = new Psbt({ network });
@@ -248,11 +249,7 @@ export async function createMultisendOrd({
     if (ordUtxo.ords.length > 1) {
       throw new Error("Multiple inscriptions! Please split them first.");
     }
-    tx.addInput({
-      hash: ordUtxo.txId,
-      index: ordUtxo.outputIndex,
-      nonWitnessUtxo: Buffer.from(ordUtxo.rawHex!, "hex"),
-    });
+    addPsbtInput({ network, psbt: tx, publicKey, utxo: ordUtxo });
     tx.addOutput({ address: toAddress, value: ordUtxo.satoshis });
   }
 
@@ -260,11 +257,7 @@ export async function createMultisendOrd({
   for (let i = 0; i < nonOrdUtxos.length; i++) {
     const nonOrdUtxo = nonOrdUtxos[i];
     amount += nonOrdUtxo.satoshis;
-    tx.addInput({
-      hash: nonOrdUtxo.txId,
-      index: nonOrdUtxo.outputIndex,
-      nonWitnessUtxo: Buffer.from(nonOrdUtxo.rawHex!, "hex"),
-    });
+    addPsbtInput({ network, psbt: tx, publicKey, utxo: nonOrdUtxo });
   }
 
   const fee = await calculateFee(

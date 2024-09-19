@@ -29,4 +29,13 @@ export interface CreateMultiSendOrd {
   changeAddress: string;
   feeRate?: number;
   network?: Network;
+  publicKey: string;
+}
+
+export interface AddInputProps {
+  psbt: Psbt;
+  utxo: UnspentOutputBase;
+  publicKey: string;
+  network: Network;
+  sighashType?: number;
 }
